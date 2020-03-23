@@ -1,11 +1,11 @@
-com\athena\entities\AthenaClientFactory$2.class
 com\athena\services\QueryService.class
-com\athena\controllers\MainController.class
-com\athena\services\MainService.class
 com\athena\AthenaApplication.class
-com\athena\entities\Config.class
 com\athena\services\AthenaService.class
 com\athena\entities\AthenaClientFactory.class
-com\athena\util\Util.class
 com\athena\entities\AthenaClientFactory$1.class
+com\athena\entities\AthenaClientFactory$2.class
+com\athena\controllers\MainController.class
+com\athena\services\MainService.class
+com\athena\entities\Config.class
+com\athena\util\Util.class
 com\athena\entities\AthenaClientFactory$2$1.class

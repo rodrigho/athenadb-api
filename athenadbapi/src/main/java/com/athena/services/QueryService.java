@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class QueryService {
 
@@ -31,5 +34,23 @@ public class QueryService {
             logger.error(e.toString());
         }
         return response;
+    }
+
+    public List<String> getS3Files(Config config){
+        List<String> list = new ArrayList<>();
+        AthenaService athenaService = new AthenaService(
+                config.getAthenaDatabase(),
+                config.getAthenaOutputBucket(),
+                config.getTimeSleep(),
+                config.getAccessKeyId(),
+                config.getSecretKey(),
+                config.getRegion());
+
+        try {
+            list = athenaService.cleanS3Directory("mmm-athena-poc","s3://mmm-athena-poc/phoenix-results/", config.getRegion());
+        } catch (Exception e) {
+            logger.error(e.toString());
+        }
+        return list;
     }
 }

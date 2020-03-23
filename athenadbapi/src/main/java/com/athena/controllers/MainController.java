@@ -38,4 +38,9 @@ public class MainController {
         return ResponseEntity.ok(mainService.runQuery(config));
 
     }
+
+    @PostMapping(value = "s3", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<String>> getS3Files(@RequestBody Config config) {
+        return ResponseEntity.ok(mainService.getS3File(config));
+    }
 }

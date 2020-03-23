@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.athena.entities.AthenaClientFactory;
 import com.athena.entities.Config;
 import com.athena.entities.Response;
+import com.athena.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkField;
@@ -182,17 +183,19 @@ public class AthenaService {
         return rows;
     }
 
-    private void cleanS3Directory(String bucketName, String folderPath){
+    public List<String> cleanS3Directory(String bucketName, String folderPath, String region){
+        List<String> list = new ArrayList<>();
         try {
             AmazonS3 s3 = AmazonS3ClientBuilder.standard()
                     .withCredentials(athenaClientFactory.getAwsCredentials())
-                    .withRegion(Regions.US_EAST_1)
+                    .withRegion(Util.getRegions(region))
                     .build();
 
             System.out.println(s3.getS3AccountOwner());
 
             for (S3ObjectSummary file : s3.listObjects(bucketName, folderPath).getObjectSummaries()){
                 logger.info(file.toString());
+                list.add(file.getBucketName());
                 //s3.deleteObject(bucketName, file.getKey());
             }
         } catch (AmazonServiceException e) {
@@ -204,6 +207,6 @@ public class AthenaService {
             // Amazon S3 couldn't be contacted for a response, or the client
             // couldn't parse the response from Amazon S3.
         }
-
+        return list;
     }
 }

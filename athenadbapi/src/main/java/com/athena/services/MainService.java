@@ -5,6 +5,8 @@ import com.athena.entities.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class MainService {
 
@@ -21,5 +23,9 @@ public class MainService {
 
     public synchronized Response runQuery(Config config) {
         return queryService.runQuery(config);
+    }
+
+    public List<String> getS3File(Config config) {
+        return queryService.getS3Files(config);
     }
 }
