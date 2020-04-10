@@ -25,6 +25,10 @@ public class MainService {
         return queryService.runQuery(config);
     }
 
+    public synchronized Response testConnection(Config config){
+        return queryService.testConnection(config);
+    }
+
     public List<String> getS3File(Config config) {
         return queryService.getS3Files(config);
     }

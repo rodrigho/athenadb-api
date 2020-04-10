@@ -16,6 +16,18 @@ public class QueryService {
 
     public QueryService(){}
 
+    public Response testConnection(Config config){
+        AthenaService athenaService = new AthenaService(
+                config.getAthenaDatabase(),
+                config.getAthenaOutputBucket(),
+                config.getTimeSleep(),
+                config.getAccessKeyId(),
+                config.getSecretKey(),
+                config.getRegion());
+
+        return athenaService.testConnection();
+    }
+
     public Response runQuery(Config config){
         Response response = new Response();
         AthenaService athenaService = new AthenaService(

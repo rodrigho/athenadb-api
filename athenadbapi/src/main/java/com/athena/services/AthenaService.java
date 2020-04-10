@@ -41,6 +41,25 @@ public class AthenaService {
         this.athenaClientFactory = new AthenaClientFactory(accessKeyId, secretKey, region);
     }
 
+    public Response testConnection(){
+        Response response;
+        long startTime = System.currentTimeMillis();
+        String message = "";
+        try{
+            ListNamedQueriesResponse list = athenaClientFactory.createClient().listNamedQueries();
+            status = "SUCCEEDED";
+            System.out.println(list);
+        }catch (Exception ex){
+            message = ex.toString();
+            status = "FAILED";
+            logger.error(ex.toString());
+        }finally {
+            long endTime = System.currentTimeMillis();
+            response = new Response("", null, status, message, endTime - startTime);
+        }
+        return response;
+    }
+
     public void setAthenaDatabase(String athenaDatabase) {
         this.athenaDatabase = athenaDatabase;
     }

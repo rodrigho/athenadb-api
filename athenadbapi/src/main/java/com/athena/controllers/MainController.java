@@ -33,10 +33,14 @@ public class MainController {
         return ResponseEntity.ok(mainService.getSalute());
     }
 
+    @PostMapping(value = "test-connection", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Response> testConnection(@RequestBody Config config) {
+        return ResponseEntity.ok(mainService.testConnection(config));
+    }
+
     @PostMapping(value = "execute", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> getQueryResult(@RequestBody Config config) {
         return ResponseEntity.ok(mainService.runQuery(config));
-
     }
 
     @PostMapping(value = "s3", produces = MediaType.APPLICATION_JSON_VALUE)
