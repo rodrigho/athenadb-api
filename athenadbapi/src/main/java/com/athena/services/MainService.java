@@ -32,4 +32,8 @@ public class MainService {
     public List<String> getS3File(Config config) {
         return queryService.getS3Files(config);
     }
+
+    public synchronized Response stopQueryId(Config config) {
+        return queryService.stopQuery(config);
+    }
 }

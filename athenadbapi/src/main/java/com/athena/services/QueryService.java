@@ -40,7 +40,27 @@ public class QueryService {
 
         try {
             response = athenaService.executeQuery(config);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
+            response.setStatus("FAILED");
+            response.setMessage(e.toString());
+            logger.error(e.toString());
+        }
+        return response;
+    }
+
+    public Response stopQuery(Config config){
+        Response response = new Response();
+        AthenaService athenaService = new AthenaService(
+                config.getAthenaDatabase(),
+                config.getAthenaOutputBucket(),
+                config.getTimeSleep(),
+                config.getAccessKeyId(),
+                config.getSecretKey(),
+                config.getRegion());
+
+        try {
+            response = athenaService.stopQueryExecution(config);
+        } catch (Exception e) {
             response.setStatus("FAILED");
             response.setMessage(e.toString());
             logger.error(e.toString());

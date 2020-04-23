@@ -72,7 +72,7 @@ public class AthenaService {
         this.timeSleep = timeSleep;
     }
 
-    public Response executeQuery(Config config) throws InterruptedException {
+    public Response executeQuery(Config config) {
         Response response;
         long startTime = System.currentTimeMillis();
         String message = "";
@@ -200,6 +200,42 @@ public class AthenaService {
             rows.add(rowValues);
         }
         return rows;
+    }
+
+    public Response stopQueryExecution(Config config){
+        Response response;
+        long startTime = System.currentTimeMillis();
+        String message = "";
+        List<List<String>> lists = new ArrayList<>();
+        String queryExecutionId = config.getQueryExecutionId();
+        AthenaClient athenaClient = athenaClientFactory.createClient();
+        try {
+            // Submit the stop query Request
+            StopQueryExecutionRequest stopQueryExecutionRequest = StopQueryExecutionRequest.builder()
+                    .queryExecutionId(config.getQueryExecutionId()).build();
+
+            StopQueryExecutionResponse stopQueryExecutionResponse = athenaClient.stopQueryExecution(stopQueryExecutionRequest);
+
+            // Ensure that the query was stopped
+            GetQueryExecutionRequest getQueryExecutionRequest = GetQueryExecutionRequest.builder()
+                    .queryExecutionId(config.getQueryExecutionId()).build();
+
+            GetQueryExecutionResponse getQueryExecutionResponse = athenaClient.getQueryExecution(getQueryExecutionRequest);
+            if (getQueryExecutionResponse.queryExecution()
+                    .status()
+                    .state()
+                    .equals(QueryExecutionState.CANCELLED)) {
+                // Query was cancelled.
+                System.out.println("Query has been cancelled");
+            }
+        }catch (Exception e){
+            message = e.toString();
+            logger.error(e.toString());
+        }finally {
+            long endTime = System.currentTimeMillis();
+            response = new Response(queryExecutionId, lists, status, message, endTime - startTime);
+        }
+        return response;
     }
 
     public List<String> cleanS3Directory(String bucketName, String folderPath, String region){

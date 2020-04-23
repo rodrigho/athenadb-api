@@ -47,4 +47,9 @@ public class MainController {
     public ResponseEntity<List<String>> getS3Files(@RequestBody Config config) {
         return ResponseEntity.ok(mainService.getS3File(config));
     }
+
+    @PostMapping(value = "stop", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Response> stopQueryId(@RequestBody Config config) {
+        return ResponseEntity.ok(mainService.stopQueryId(config));
+    }
 }
