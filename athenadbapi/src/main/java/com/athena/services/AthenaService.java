@@ -1,18 +1,12 @@
 package com.athena.services;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.athena.entities.AthenaClientFactory;
 import com.athena.entities.Config;
 import com.athena.entities.Response;
-import com.athena.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.athena.model.*;
 import software.amazon.awssdk.services.athena.paginators.GetQueryResultsIterable;
@@ -33,26 +27,27 @@ public class AthenaService {
     private static final Logger logger = LoggerFactory.getLogger(MainService.class);
 
     public AthenaService(String athenaDatabase, String athenaOutputBucket, long timeSleep,
-                                  String accessKeyId, String secretKey, String region){
+                                  String accessKeyId, String secretKey, String region, Boolean useEc2InstanceCredentials){
         this.athenaDatabase = athenaDatabase;
         this.athenaOutputBucket = athenaOutputBucket;
         this.timeSleep = timeSleep;
         this.status = "";
-        this.athenaClientFactory = new AthenaClientFactory(accessKeyId, secretKey, region);
+        this.athenaClientFactory = new AthenaClientFactory(accessKeyId, secretKey, region, useEc2InstanceCredentials);
     }
 
-    public Response testConnection(){
+    public Response testConnection(Config config){
         Response response;
         long startTime = System.currentTimeMillis();
+        AthenaClient athenaClient = athenaClientFactory.createClient();
         String message = "";
         try{
-            ListNamedQueriesResponse list = athenaClientFactory.createClient().listNamedQueries();
+            ListNamedQueriesResponse list = athenaClient.listNamedQueries();
             status = "SUCCEEDED";
-            System.out.println(list);
+            System.out.println(status + " " + list);
         }catch (Exception ex){
             message = ex.toString();
             status = "FAILED";
-            logger.error(ex.toString());
+            logger.error(status);
         }finally {
             long endTime = System.currentTimeMillis();
             response = new Response("", null, status, message, endTime - startTime);
@@ -82,6 +77,38 @@ public class AthenaService {
         try {
             if (!config.isUseQueryId())
                 queryExecutionId = submitAthenaQuery(athenaClient, config.getQueries().get(0));
+
+            logger.info("Query to test: " + queryExecutionId);
+            waitForQueryToComplete(athenaClient, queryExecutionId);
+            lists = processResultRows(athenaClient, queryExecutionId);
+
+            formatResultForDescribe(lists);
+
+            logger.info("Query finished");
+        }catch (Exception e){
+            message = e.toString();
+            logger.error(e.toString());
+        }finally {
+            long endTime = System.currentTimeMillis();
+            response = new Response(queryExecutionId, lists, status, message, endTime - startTime);
+        }
+        return response;
+    }
+
+    public Response executeQueryStream(Config config, SseEmitter emitter) {
+        Response response;
+        long startTime = System.currentTimeMillis();
+        String message = "";
+        List<List<String>> lists = new ArrayList<>();
+        String queryExecutionId = config.getQueryExecutionId();
+
+        try {
+            AthenaClient athenaClient = athenaClientFactory.createClient();
+
+            if (!config.isUseQueryId())
+                queryExecutionId = submitAthenaQuery(athenaClient, config.getQueries().get(0));
+
+            emitter.send(queryExecutionId);
 
             logger.info("Query to test: " + queryExecutionId);
             waitForQueryToComplete(athenaClient, queryExecutionId);
@@ -197,6 +224,7 @@ public class AthenaService {
             for (Datum datum : row.data()) {
                 rowValues.add(datum.varCharValue());
             }
+            System.out.println(rowValues);
             rows.add(rowValues);
         }
         return rows;
@@ -238,30 +266,4 @@ public class AthenaService {
         return response;
     }
 
-    public List<String> cleanS3Directory(String bucketName, String folderPath, String region){
-        List<String> list = new ArrayList<>();
-        try {
-            AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                    .withCredentials(athenaClientFactory.getAwsCredentials())
-                    .withRegion(Util.getRegions(region))
-                    .build();
-
-            System.out.println(s3.getS3AccountOwner());
-
-            for (S3ObjectSummary file : s3.listObjects(bucketName, folderPath).getObjectSummaries()){
-                logger.info(file.toString());
-                list.add(file.getBucketName());
-                //s3.deleteObject(bucketName, file.getKey());
-            }
-        } catch (AmazonServiceException e) {
-            logger.error(e.toString());
-            // The call was transmitted successfully, but Amazon S3 couldn't process
-            // it, so it returned an error response.
-        } catch (SdkClientException e) {
-            logger.error(e.toString());
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
-        }
-        return list;
-    }
 }

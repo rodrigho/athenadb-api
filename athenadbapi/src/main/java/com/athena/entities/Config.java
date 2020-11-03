@@ -13,11 +13,12 @@ public class Config {
     private List<String> queries;
     private boolean useQueryId;
     private String queryExecutionId;
+    private Boolean useEc2InstanceCredentials;
 
     public Config(){}
 
     public Config(String athenaDatabase, String athenaOutputBucket, int timeSleep, String accessKeyId, String secretKey,
-                  String region, List<String> queries, boolean useQueryId, String queryExecutionId) {
+                  String region, List<String> queries, boolean useQueryId, String queryExecutionId, Boolean useEc2InstanceCredentials) {
         this.athenaDatabase = athenaDatabase;
         this.athenaOutputBucket = athenaOutputBucket;
         this.timeSleep = timeSleep;
@@ -27,6 +28,7 @@ public class Config {
         this.queries = queries;
         this.useQueryId = useQueryId;
         this.queryExecutionId = queryExecutionId;
+        this.useEc2InstanceCredentials = useEc2InstanceCredentials;
     }
 
     public String getAthenaDatabase() {
@@ -99,6 +101,14 @@ public class Config {
 
     public void setQueryExecutionId(String queryExecutionId) {
         this.queryExecutionId = queryExecutionId;
+    }
+
+    public Boolean getUseEc2InstanceCredentials() {
+        return useEc2InstanceCredentials;
+    }
+
+    public void setUseEc2InstanceCredentials(Boolean useEc2InstanceCredentials) {
+        this.useEc2InstanceCredentials = useEc2InstanceCredentials;
     }
 
     @Override

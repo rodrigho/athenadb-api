@@ -4,8 +4,8 @@ import com.athena.entities.Config;
 import com.athena.entities.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
 
 @Service
 public class MainService {
@@ -25,13 +25,14 @@ public class MainService {
         return queryService.runQuery(config);
     }
 
+    public synchronized Response runQueryStream(Config config, SseEmitter emitter) {
+        return queryService.runQueryStream(config, emitter);
+    }
+
     public synchronized Response testConnection(Config config){
         return queryService.testConnection(config);
     }
 
-    public List<String> getS3File(Config config) {
-        return queryService.getS3Files(config);
-    }
 
     public synchronized Response stopQueryId(Config config) {
         return queryService.stopQuery(config);
